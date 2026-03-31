@@ -5,9 +5,19 @@ use player::Player;
 use enemy::Enemy;
 use crate::inventory::Inventory;
 use std::io;
+    enum GameState {
+    Encounter,
+    BossEncounter,
+    Shop,
+    Victory,
+    GameOver,
+}
+
 
 fn main(){
 
+    let mut level: i32 = 1;
+    let mut state = GameState::Encounter;
     let mut player: Player = Player {hp:100, damage:10,
     inventory: Inventory{
         items: Vec::new(),
@@ -25,8 +35,12 @@ fn main(){
 
     println!("Items: {}", player.inventory.items.len());
 
+//Encounter
+loop {
     
-
+        match state {
+            
+    GameState::Encounter => {
     while player.hp > 0 && enemy.hp > 0 {
         // Ask for action
     println!("Choose action: 1) Attack 2) Defend 3) Use Item");
@@ -59,6 +73,32 @@ fn main(){
 
     println!("After the turn:");
     println!("Player HP: {}, Enemy HP: {}", player.hp, enemy.hp);
+}
+}
+    GameState::BossEncounter => { println!("Boss Goes Here!");
+    state = GameState::Victory; },
 
+    GameState::Shop => { println!("Shop Goes Here!"); },
+    GameState::Victory => { println!("You Win!"); },
+    GameState::GameOver => { println!("You Lose!"); },
+
+}
+    //Progression
+   if player.hp <= 0 {
+        state = GameState::GameOver;
+    } else if enemy.hp <= 0 {
+    if level == 12 {
+        state = GameState::Victory;
+    } else if matches!(state, GameState::Encounter | GameState::BossEncounter) {
+        level += 1;
+        state = match level {
+            6 | 11 => GameState::Shop,
+            12 => GameState::BossEncounter,
+            _ => GameState::Encounter,
+        };
+        // Reset enemy for next combat
+        enemy.hp = 20;
     }
+}
+}
 }
