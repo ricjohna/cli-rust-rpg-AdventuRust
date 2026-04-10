@@ -35,7 +35,7 @@ fn main(){
     player.inventory.items.push(inventory::Item { name: "Potion".to_string(), heal: 20, });
 
     //Start of Game
-    println!("Welcome to Adventurust!");
+    println!("Welcome to AdventuRust!");
     clear_screen();
 
 
