@@ -22,6 +22,7 @@ fn main(){
 
     let mut level: i32 = 1;
     let mut state = GameState::Encounter;
+    let mut player_defend_turns = 0;
     let mut player: Player = Player {hp:100, damage:10,
     inventory: Inventory{
         items: Vec::new(),
@@ -33,7 +34,10 @@ fn main(){
 
     player.inventory.items.push(inventory::Item { name: "Potion".to_string(), heal: 20, });
 
-    println!("Items: {}", player.inventory.items.len());
+    //Start of Game
+    println!("Welcome to Adventurust!");
+    clear_screen();
+
 
 //Encounter
 loop {
@@ -43,17 +47,14 @@ loop {
     GameState::Encounter => {
     println!("{} Approaches!", enemy.name);
     while player.hp > 0 && enemy.hp > 0 {
+
     //Initial Display
-    println!("Player HP: {}",player.hp);
-    println!("Player Damage: {}",player.damage);
+    println!("Player HP: {}                {} HP: {}",player.hp, enemy.name, enemy.hp);
+    println!("Player Damage: {}             {} Damage: {}",player.damage, enemy.name ,enemy.damage);
 
-    
-    println!("{} HP: {}",enemy.name ,enemy.hp);
-    println!("{} Damage: {}",enemy.name ,enemy.damage);
-
-    
-        // Ask for action
-    println!("Choose action: 1) Attack 2) Defend 3) Use Potion");
+    // Ask for action
+    println!("\nChoose action: 1) Attack 2) Defend 3) Use Potion");
+    println!("Potions available: {}", player.inventory.items.len());
 
     let mut input = String::new();
     io::stdin().read_line(&mut input).expect("Failed");
@@ -64,8 +65,8 @@ loop {
             enemy.hp -= player.damage;
         }
         "2" => {
-            println!("You defend! Enemy deals half damage next turn. (To be implemented)");
-            //To be implemented for now just skips turn xd
+            println!("You defend! This turn and the following turn halves taken damage!");
+            player_defend_turns = 2;
         }
         "3" => {
             if let Some(item) = player.inventory.items.pop() {
@@ -79,8 +80,14 @@ loop {
     }
 
     // Enemy attacks
-    println!("Enemy attacks for {} damage!", enemy.damage);
-    player.hp -= enemy.damage;
+    let actual_damage = if player_defend_turns > 0 {
+    player_defend_turns -= 1;
+        enemy.damage / 2
+    } else {
+        enemy.damage
+    };
+    println!("{} attacks for {} damage!", enemy.name ,actual_damage);
+    player.hp -= actual_damage;
     clear_screen();
 
 }
@@ -90,6 +97,7 @@ loop {
         println!("Boss Goes Here!");
     state = GameState::Victory; },
 
+    //Shop
     GameState::Shop => {
     clear_screen();
     println!("\n=== SHOP ===");
@@ -100,6 +108,7 @@ loop {
     let mut input = String::new();
     io::stdin().read_line(&mut input).expect("Failed");
     
+    //Buy Potion
     match input.trim() {
         "1" => {
         if player.gold >= 5 {
@@ -110,19 +119,21 @@ loop {
             println!("Not enough gold! You need 5, you have {}", player.gold);
         }
         }
+        //Leave shop
         "2" => {
             state = GameState::Rest;
         }
         _ => println!("Invalid choice"),
     }
 }
-    
+    //Rest
     GameState::Rest => {
         println!("1) Rest and go to next encounter");
         println!("2) check inventory");
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed");
         match input.trim(){
+            //Rest
             "1" => {
                 println!("You have rested! Heading to next encounter. . .");
                 clear_screen();
@@ -139,11 +150,11 @@ loop {
                 
                 };
                 //Enemy Scaling
-                enemy.hp = 20 + (level*2);
-                enemy.damage = 5 + level;
+                enemy = enemy::create_enemy(level);
     
 
             }
+            //Check Inventory
             "2" => {
                 println!("Your inventory contains {} potion(s)", player.inventory.items.len());
                 println!("Your Gold: {}", player.gold);
@@ -159,6 +170,7 @@ loop {
             clear_screen();
             println!("You Win!");
             break; },
+
     GameState::GameOver => { 
         clear_screen();
         println!("You Lose!");
@@ -180,8 +192,7 @@ loop {
             
             println!("You defeated the {}! You gained {} gold!", enemy.name ,gold_gen);
             println!("Heading to Rest area...");
-            // Short Delay to display reward
-            
+            // Short Delay to display reward then clear to transition to Rest Gamestate
             clear_screen();
             }
             
